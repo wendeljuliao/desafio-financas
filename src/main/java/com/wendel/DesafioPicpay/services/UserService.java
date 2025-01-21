@@ -18,6 +18,7 @@ import com.wendel.DesafioPicpay.dtos.UserDTO;
 import com.wendel.DesafioPicpay.dtos.UserResponseDTO;
 import com.wendel.DesafioPicpay.models.User;
 import com.wendel.DesafioPicpay.repositories.UserRepository;
+import com.wendel.DesafioPicpay.services.exceptions.RecordAlreadyExistsException;
 
 @Service
 public class UserService {
@@ -36,10 +37,8 @@ public class UserService {
 	
 	public RecoveryJWTTokenDTO authenticateUser(LoginUserDTO loginUserDTO) {
 		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(loginUserDTO.email(), loginUserDTO.password());
-		System.out.println(loginUserDTO.email() + " " + loginUserDTO.password());
-		System.out.println(usernamePasswordAuthenticationToken);
+		
 		Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
-		System.out.println(usernamePasswordAuthenticationToken);
 		
 		UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 		
@@ -57,13 +56,13 @@ public class UserService {
 		boolean emailAlreadyExists = userRepository.existsByEmail(userDTO.email());
 		
 		if (emailAlreadyExists) {
-			throw new RuntimeException("Esse email já existe.");
+			throw new RecordAlreadyExistsException("Esse email já existe.");
 		}
 		
 		boolean documentAlreadyExists = userRepository.existsByDocument(userDTO.document());
 
 		if (documentAlreadyExists) {
-			throw new RuntimeException("Esse documento já existe.");
+			throw new RecordAlreadyExistsException("Esse documento já existe.");
 		}
 		
 		User user = new User(userDTO);

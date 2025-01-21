@@ -13,6 +13,9 @@ import com.wendel.DesafioPicpay.models.Transaction;
 import com.wendel.DesafioPicpay.models.User;
 import com.wendel.DesafioPicpay.repositories.TransactionRepository;
 import com.wendel.DesafioPicpay.repositories.UserRepository;
+import com.wendel.DesafioPicpay.services.exceptions.EntityNotFoundException;
+import com.wendel.DesafioPicpay.services.exceptions.InsuficientAmountException;
+import com.wendel.DesafioPicpay.services.exceptions.LojistaMustNotTransferException;
 
 @Service
 public class TransactionService {
@@ -35,18 +38,18 @@ public class TransactionService {
 	@Transactional
 	public Transaction makeTransaction(TransactionDTO transactionDTO) {
 		User payer = userRepository.findById(transactionDTO.payerId())
-				.orElseThrow(() -> new RuntimeException("Pagador não encontrado."));
+				.orElseThrow(() -> new EntityNotFoundException("Pagador não encontrado."));
 		
 		
 		User payee = userRepository.findById(transactionDTO.payeeId())
-				.orElseThrow(() -> new RuntimeException("Beneficiário não encontrado."));
+				.orElseThrow(() -> new EntityNotFoundException("Beneficiário não encontrado."));
 		
 		if (payer.getUserType().equals(UserTypeEnum.LOJISTA)) {
-			throw new RuntimeException("Lojista não podem realizar transferências.");
+			throw new LojistaMustNotTransferException("Lojista não podem realizar transferências.");
 		}
 		
 		if (payer.getAmount() < transactionDTO.amount()) {
-			throw new RuntimeException("Saldo insuficiente para realizar a transferência.");
+			throw new InsuficientAmountException("Saldo insuficiente para realizar a transferência.");
 		}
 		
 		AuthorizeRequestDTO response;

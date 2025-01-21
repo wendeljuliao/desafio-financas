@@ -14,6 +14,7 @@ import com.wendel.DesafioPicpay.configs.SecurityConfiguration;
 import com.wendel.DesafioPicpay.configs.userdetails.UserDetailsImpl;
 import com.wendel.DesafioPicpay.models.User;
 import com.wendel.DesafioPicpay.repositories.UserRepository;
+import com.wendel.DesafioPicpay.services.exceptions.EntityNotFoundException;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -36,7 +37,7 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
 			String token = recoveryToken(request);
 			if (token != null) {
 				String subject = jwtTokenService.getSubjectFromToken(token);
-				User user = userRepository.findByEmail(subject).get();
+				User user = userRepository.findByEmail(subject).orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
 				UserDetailsImpl userDetails = new UserDetailsImpl(user);
 				
 				Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
