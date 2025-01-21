@@ -1,5 +1,6 @@
 package com.wendel.DesafioPicpay.dtos;
 
+import com.wendel.DesafioPicpay.enums.RoleName;
 import com.wendel.DesafioPicpay.enums.UserTypeEnum;
 
 import jakarta.persistence.Column;
@@ -22,7 +23,9 @@ public record UserDTO(
 		@NotNull
 		Double amount,
 		@NotNull
-		UserTypeEnum userType
+		UserTypeEnum userType,
+		@NotNull
+		RoleName role
 	) {
 
 }

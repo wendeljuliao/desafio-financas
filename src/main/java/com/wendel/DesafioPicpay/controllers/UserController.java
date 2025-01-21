@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wendel.DesafioPicpay.dtos.LoginUserDTO;
+import com.wendel.DesafioPicpay.dtos.RecoveryJWTTokenDTO;
 import com.wendel.DesafioPicpay.dtos.UserDTO;
-import com.wendel.DesafioPicpay.models.User;
+import com.wendel.DesafioPicpay.dtos.UserResponseDTO;
 import com.wendel.DesafioPicpay.services.UserService;
 
 import jakarta.validation.Valid;
@@ -24,13 +26,19 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 	
+	@PostMapping("/login")
+	public ResponseEntity<RecoveryJWTTokenDTO> authenticateUser(@RequestBody LoginUserDTO loginUserDTO) {
+		RecoveryJWTTokenDTO token = userService.authenticateUser(loginUserDTO);
+		return ResponseEntity.ok(token);
+	}
+	
 	@GetMapping
-	public ResponseEntity<List<User>> getAllUsers() {
+	public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
 		return ResponseEntity.ok(userService.getAllUsers());
 	}
 	
 	@PostMapping
-	public ResponseEntity<User> createUser(@Valid @RequestBody UserDTO userDTO) {
+	public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserDTO userDTO) {
 		return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userDTO));
 	}
 }
