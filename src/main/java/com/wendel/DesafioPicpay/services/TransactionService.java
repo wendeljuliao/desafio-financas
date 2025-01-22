@@ -1,13 +1,17 @@
 package com.wendel.DesafioPicpay.services;
 
+import java.util.Random;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.wendel.DesafioPicpay.dtos.AuthorizeRequestDTO;
 import com.wendel.DesafioPicpay.dtos.TransactionDTO;
+import com.wendel.DesafioPicpay.dtos.UserResponseDTO;
 import com.wendel.DesafioPicpay.enums.UserTypeEnum;
 import com.wendel.DesafioPicpay.models.Transaction;
 import com.wendel.DesafioPicpay.models.User;
@@ -16,6 +20,7 @@ import com.wendel.DesafioPicpay.repositories.UserRepository;
 import com.wendel.DesafioPicpay.services.exceptions.EntityNotFoundException;
 import com.wendel.DesafioPicpay.services.exceptions.InsuficientAmountException;
 import com.wendel.DesafioPicpay.services.exceptions.LojistaMustNotTransferException;
+import com.wendel.DesafioPicpay.services.exceptions.ProcessingServiceErrorException;
 
 @Service
 public class TransactionService {
@@ -34,6 +39,11 @@ public class TransactionService {
 	
 	@Autowired
 	private RestTemplate restTemplate;
+	
+	@Autowired
+	private KafkaTemplate<String, UserResponseDTO> kafkaTemplate;
+	
+	private final Random random = new Random();
 	
 	@Transactional
 	public Transaction makeTransaction(TransactionDTO transactionDTO) {
@@ -57,11 +67,11 @@ public class TransactionService {
 		try {
 			response =  restTemplate.getForObject(urlUtilDevi + "v2/authorize", AuthorizeRequestDTO.class);
 		} catch (Exception e) {
-			throw new RuntimeException("Erro na autorização do serviço.");
+			throw new ProcessingServiceErrorException("Erro na autorização do serviço.");
 		}
 		
 		if (!response.getData().getAuthorization()) {
-			throw new RuntimeException("Autorização negada.");
+			throw new ProcessingServiceErrorException("Autorização negada.");
 		}
 				
 		payer.setAmount(payer.getAmount() - transactionDTO.amount());
@@ -69,10 +79,18 @@ public class TransactionService {
 		
 		Transaction transaction = new Transaction(transactionDTO);
 		transactionRepository.save(transaction);
-		
-		emailService.enviarEmail();
+
+		sendMessageEmail(new UserResponseDTO(payee));
+		// emailService.sendEmail();
 		
 		return transaction;
+	}
+	
+	private void sendMessageEmail(UserResponseDTO user) {
+		int partition = random.nextInt(2);
+		System.out.println("Enviado para partição: " + partition);
+		System.out.println("Mandando email: " + user.getEmail());
+		kafkaTemplate.send("email-processed", partition, null, user);
 	}
 	
 }

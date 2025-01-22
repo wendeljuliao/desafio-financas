@@ -3,28 +3,29 @@ package com.wendel.DesafioPicpay.dtos;
 import com.wendel.DesafioPicpay.enums.RoleName;
 import com.wendel.DesafioPicpay.enums.UserTypeEnum;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 
 public record UserDTO(
-		@NotBlank
+		@NotBlank(message = "Nome completo vazio.")
+		@NotNull(message = "Nome completo não pode ser nulo.")
 		String fullname,
-		@NotBlank
+		@NotBlank(message = "Documento vazio.")
+		@NotNull(message = "Documento não pode ser nulo.")
 		String document,
-		@NotBlank
-		@Email
+		@Email(message = "Email inválido.")
 		String email,
-		@NotBlank
+		@NotBlank(message = "Senha vazia.")
+		@NotNull(message = "Senha não pode ser nula.")
 		String password,
-		@PositiveOrZero
-		@NotNull
+		@PositiveOrZero(message = "Campo tem que ser maior ou igual a 0.")
+		@NotNull(message = "Quantidade não pode ser nula.")
 		Double amount,
-		@NotNull
+		@NotNull(message = "Tipo de usuário não pode ser nulo.")
 		UserTypeEnum userType,
-		@NotNull
+		@NotNull(message = "Role não pode ser nula.")
 		RoleName role
 	) {
 

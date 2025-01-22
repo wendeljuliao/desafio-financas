@@ -5,29 +5,50 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.TopicPartition;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.wendel.DesafioPicpay.dtos.UserResponseDTO;
+import com.wendel.DesafioPicpay.services.exceptions.ProcessingServiceErrorException;
+
 @Service
 public class EmailService {
-	
+
 	@Value("${url-util-devi}")
 	private String urlUtilDevi;
-	
+
 	@Autowired
 	private RestTemplate restTemplate;
-	
-	public void enviarEmail() {
+
+	public void sendEmail() {
 		Map<String, String> request = new HashMap<>();
-		
+
 		request.put("title", "Pagamento");
 		request.put("body", "Transferência realizada");
-		
+
 		try {
 			restTemplate.postForObject(urlUtilDevi + "v1/notify", request, String.class);
 		} catch (Exception e) {
-			throw new RuntimeException("Erro ao enviar email.");
+			throw new ProcessingServiceErrorException("Erro ao enviar email.");
 		}
 	}
-	
+
+	@KafkaListener(topicPartitions = @TopicPartition(topic = "email-processed", partitions = { "0",
+			"1" }), containerFactory = "emailKafkaListenerContainerFactory")
+	public void emailListener(UserResponseDTO user) {
+		System.out.println("Recebido mensagem do consumidor: " + user);
+		Map<String, String> request = new HashMap<>();
+
+		request.put("title", "Pagamento");
+		request.put("body", "Transferência realizada");
+
+		try {
+			restTemplate.postForObject(urlUtilDevi + "v1/notify", request, String.class);
+		} catch (Exception e) {
+			throw new ProcessingServiceErrorException("Erro ao enviar email.");
+		}
+	}
+
 }
