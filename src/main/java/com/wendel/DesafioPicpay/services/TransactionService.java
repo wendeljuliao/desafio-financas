@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import com.wendel.DesafioPicpay.dtos.AuthorizeRequestDTO;
+import com.wendel.DesafioPicpay.dtos.EmailDTO;
 import com.wendel.DesafioPicpay.dtos.TransactionDTO;
 import com.wendel.DesafioPicpay.dtos.UserResponseDTO;
 import com.wendel.DesafioPicpay.enums.UserTypeEnum;
@@ -41,7 +42,7 @@ public class TransactionService {
 	private RestTemplate restTemplate;
 	
 	@Autowired
-	private KafkaTemplate<String, UserResponseDTO> kafkaTemplate;
+	private KafkaTemplate<String, EmailDTO> kafkaTemplate;
 	
 	private final Random random = new Random();
 	
@@ -80,17 +81,17 @@ public class TransactionService {
 		Transaction transaction = new Transaction(transactionDTO);
 		transactionRepository.save(transaction);
 
-		sendMessageEmail(new UserResponseDTO(payee));
+		sendMessageEmail(new EmailDTO(payee.getFullname(), payee.getDocument(), payee.getEmail(), transactionDTO.amount()));
 		// emailService.sendEmail();
 		
 		return transaction;
 	}
 	
-	private void sendMessageEmail(UserResponseDTO user) {
+	private void sendMessageEmail(EmailDTO email) {
 		int partition = random.nextInt(2);
 		System.out.println("Enviado para partição: " + partition);
-		System.out.println("Mandando email: " + user.getEmail());
-		kafkaTemplate.send("email-processed", partition, null, user);
+		System.out.println("Mandando email: " + email.email());
+		kafkaTemplate.send("email-processed", partition, null, email);
 	}
 	
 }

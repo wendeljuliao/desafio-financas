@@ -24,7 +24,7 @@ public class KafkaTopicConfig {
 	}
 	
 	@Bean
-	public NewTopic topicOrderProcessed() {
+	public NewTopic topicEmailProcessed() {
 		return new NewTopic("email-processed", 2, (short) 1);
 	}
 	

@@ -13,6 +13,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
+import com.wendel.DesafioPicpay.dtos.EmailDTO;
 import com.wendel.DesafioPicpay.dtos.UserResponseDTO;
 
 @Configuration
@@ -22,7 +23,7 @@ public class KafkaProducerConfig {
 	private String bootstrapAddress;
 	
 	@Bean
-	public ProducerFactory<String, UserResponseDTO> emailProducerFactory() {
+	public ProducerFactory<String, EmailDTO> emailProducerFactory() {
 		Map<String, Object> props = new HashMap<>();
 		props.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
 		props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
@@ -34,7 +35,7 @@ public class KafkaProducerConfig {
 	}
 	
 	@Bean
-	public KafkaTemplate<String, UserResponseDTO> emailKafkaTemplate() {
+	public KafkaTemplate<String, EmailDTO> emailKafkaTemplate() {
 		return new KafkaTemplate(emailProducerFactory());
 	}
 	
